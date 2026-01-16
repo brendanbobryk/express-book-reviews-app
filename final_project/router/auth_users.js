@@ -57,9 +57,38 @@ regd_users.post("/login", (req, res) => {
     });
 });
 
-// Add a book review
+// Add or modify a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    return res.status(300).json({message: "Yet to be implemented"});
+    const isbn = req.params.isbn;
+    const reviewText = req.query.review; // review is sent as query ?review=...
+    const token = req.session?.accessToken;
+
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized: Please log in." });
+    }
+
+    // Decode username from JWT
+    let decoded;
+    try {
+        decoded = jwt.verify(token, "fingerprint_customer");
+    } catch (err) {
+        return res.status(401).json({ message: "Invalid or expired token." });
+    }
+
+    const username = decoded.username;
+
+    // Check if book exists
+    if (!books[isbn]) {
+        return res.status(404).json({ message: "Book not found" });
+    }
+
+    // Add or update review
+    books[isbn].reviews[username] = reviewText;
+
+    return res.status(200).json({
+        message: `Review added/updated for book '${books[isbn].title}' by '${username}'`,
+        reviews: books[isbn].reviews
+    });
 });
 
 module.exports.authenticated = regd_users;
