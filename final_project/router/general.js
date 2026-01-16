@@ -97,22 +97,34 @@ public_users.get('/author/:author', async (req, res) => {
     }
 });
 
-// Get all books based on title
-public_users.get('/title/:title', function (req, res) {
-    const titleName = req.params.title; // get title from URL
-    const matchingBooks = [];
+// Get books by title using async/await
+public_users.get('/title/:title', async (req, res) => {
+    const titleName = req.params.title.toLowerCase();
 
-    // Iterate through all books
-    for (let key in books) {
-        if (books[key].title.toLowerCase() === titleName.toLowerCase()) {
-            matchingBooks.push({ isbn: key, ...books[key] });
+    try {
+        // Simulate async fetch using a Promise
+        const matchingBooks = await new Promise((resolve) => {
+            const result = [];
+            for (let key in books) {
+                if (books[key].title.toLowerCase() === titleName) {
+                    result.push({ isbn: key, ...books[key] });
+                }
+            }
+            resolve(result);
+        });
+
+        if (matchingBooks.length > 0) {
+            return res.status(200).json(matchingBooks);
+        } else {
+            return res.status(404).json({ message: "No books found with this title" });
         }
-    }
 
-    if (matchingBooks.length > 0) {
-        return res.send(JSON.stringify(matchingBooks, null, 4));
-    } else {
-        return res.status(404).json({ message: "No books found with this title" });
+        // Optional Axios example:
+        // const response = await axios.get(`https://your-api/books?title=${titleName}`);
+        // return res.status(200).json(response.data);
+
+    } catch (err) {
+        return res.status(500).json({ message: "Error fetching books by title", error: err });
     }
 });
 
