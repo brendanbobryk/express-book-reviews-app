@@ -3,6 +3,7 @@ let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
+const axios = require('axios');
 
 // Register a new user
 public_users.post("/register", (req, res) => {
@@ -23,10 +24,24 @@ public_users.post("/register", (req, res) => {
     return res.status(201).json({ message: `User '${username}' successfully registered` });
 });
 
-// Get the book list available in the shop
-public_users.get('/', function (req, res) {
-    // books is an object; stringify it with 4-space indentation for readability
-    return res.send(JSON.stringify(books, null, 4));
+// Get the book list available in the shop using async/await
+public_users.get('/', async (req, res) => {
+    try {
+        // Simulate async fetch with a Promise
+        const allBooks = await new Promise((resolve, reject) => {
+            if (books) resolve(books);
+            else reject("No books available");
+        });
+
+        // Respond with JSON
+        return res.status(200).json(allBooks);
+
+        // Optional: if you wanted to use Axios to fetch from an API:
+        // const response = await axios.get('https://your-api/books');
+        // return res.status(200).json(response.data);
+    } catch (err) {
+        return res.status(500).json({ message: "Error fetching books", error: err });
+    }
 });
 
 // Get book details based on ISBN
