@@ -44,15 +44,25 @@ public_users.get('/', async (req, res) => {
     }
 });
 
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn', function (req, res) {
-    const isbn = req.params.isbn; // retrieve ISBN from route
-    const book = books[isbn];     // find the book by ISBN
+// Get book details by ISBN using async/await
+public_users.get('/isbn/:isbn', async (req, res) => {
+    const isbn = req.params.isbn;
 
-    if (book) {
-        return res.send(JSON.stringify(book, null, 4));
-    } else {
-        return res.status(404).json({ message: "Book not found" });
+    try {
+        // Simulate async fetch using a Promise
+        const book = await new Promise((resolve, reject) => {
+            if (books[isbn]) resolve(books[isbn]);
+            else reject("Book not found");
+        });
+
+        return res.status(200).json(book);
+
+        // Optional: if you were fetching from an external API using Axios:
+        // const response = await axios.get(`https://your-api/books/${isbn}`);
+        // return res.status(200).json(response.data);
+
+    } catch (err) {
+        return res.status(404).json({ message: err });
     }
 });
 
